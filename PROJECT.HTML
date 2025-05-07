@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>AI-Driven Traffic Accident Analysis & Prediction</title>
+<style>
+  /* Import Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+  /* Reset & Base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0; padding: 0;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #eef2f3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 600px;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  h1 {
+    margin: 1rem 0 0.3rem 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+    text-align: center;
+    color: #ffd166;
+    text-shadow: 0 1px 4px #0008;
+  }
+  h2 {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin: 0.5rem 0 0.8rem;
+    color: #ffd166cc;
+    text-align: center;
+  }
+
+  /* Container */
+  .container {
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    width: 90%;
+    max-width: 340px;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin: 0.7rem 0 0.3rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  select, input[type=range] {
+    width: 100%;
+    padding: 0.35rem;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    background: #203a43;
+    color: #efd9a7;
+    box-shadow: inset 0 1px 4px rgb(0 0 0 / 0.3);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  select:hover, input[type=range]:hover {
+    background: #2c5364;
+  }
+
+  /* Range slider fix for mobile */
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    background: #ffd166;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #203a43;
+    margin-top: -8px;
+    box-shadow: 0 0 8px #ffd166bb;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: #ffd166;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #203a43;
+    box-shadow: 0 0 8px #ffd166bb;
+  }
+
+  /* Button */
+  button {
+    background: #ffd166;
+    color: #203a43;
+    border: none;
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    margin: 1rem 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+    width: 100%;
+    cursor: pointer;
+    box-shadow: 0 0 15px #ffd166aa;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #ffb830;
+  }
+
+  /* Output */
+  .output {
+    background: rgba(255, 193, 7, 0.2);
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    color: #203a43;
+    text-align: center;
+    box-shadow: inset 0 0 12px #ffd166cc;
+    min-height: 5rem;
+  }
+
+  /* Risk map simulation */
+  .risk-map {
+    background: #203a43;
+    border-radius: 12px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 6px;
+    margin-top: 1rem;
+  }
+  .risk-cell {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    background: #2c5364;
+    box-shadow: 0 0 6px #0008 inset;
+    cursor: default;
+    transition: background 0.3s ease;
+  }
+  .risk-low {
+    background: #38b000; /* green */
+    box-shadow: 0 0 8px #38b000cc;
+  }
+  .risk-medium {
+    background: #ffba08; /* yellow/orange */
+    box-shadow: 0 0 8px #ffba08cc;
+  }
+  .risk-high {
+    background: #d00000; /* red */
+    box-shadow: 0 0 10px #d00000cc;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #bbb;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 360px) {
+    h1 {
+      font-size: 1.3rem;
+    }
+    h2 {
+      font-size: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>AI-Driven Traffic Accident Prediction</h1>
+  <h2>Analyze & Visualize Potential Traffic Risk</h2>
+
+  <div class="container" aria-label="Traffic condition inputs">
+    <form id="predictionForm" aria-describedby="instruction">
+      <label for="timeOfDay">Time of Day</label>
+      <select id="timeOfDay" name="timeOfDay" aria-required="true">
+        <option value="morning">Morning (6 AM - 12 PM)</option>
+        <option value="afternoon">Afternoon (12 PM - 6 PM)</option>
+        <option value="evening">Evening (6 PM - 10 PM)</option>
+        <option value="night">Night (10 PM - 6 AM)</option>
+      </select>
+
+      <label for="weather">Weather Conditions</label>
+      <select id="weather" name="weather" aria-required="true">
+        <option value="clear">Clear</option>
+        <option value="rain">Rain</option>
+        <option value="fog">Fog</option>
+        <option value="snow">Snow</option>
+      </select>
+
+      <label for="trafficVolume">Traffic Volume: <span id="trafficValue">50</span>%</label>
+      <input type="range" id="trafficVolume" name="trafficVolume" min="0" max="100" value="50" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-label="Traffic Volume slider" />
+
+      <label for="roadCondition">Road Condition</label>
+      <select id="roadCondition" name="roadCondition" aria-required="true">
+        <option value="good">Good</option>
+        <option value="moderate">Moderate</option>
+        <option value="poor">Poor</option>
+      </select>
+
+      <button type="submit" aria-label="Predict Traffic Accident Risk">Predict Risk</button>
+    </form>
+  </div>
+
+  <div class="container" aria-live="polite" aria-atomic="true" aria-relevant="text">
+    <div class="output" id="resultOutput" tabindex="0" aria-label="Prediction results">
+      Enter traffic conditions above and click "Predict Risk" for analysis.
+    </div>
+    <div aria-label="Simulated risk map" aria-live="polite" aria-atomic="true" class="risk-map" id="riskMap" role="img" title="Simulated traffic accident risk map showing risk hotspots">
+      <!-- risk cells inserted by JS -->
+    </div>
+  </div>
+
+  <footer>
+    Powered by simulated AI models. Data sample & demo only.
+  </footer>
+
+<script>
+  // Update traffic volume label dynamically for accessibility
+  const trafficVolume = document.getElementById('trafficVolume');
+  const trafficValue = document.getElementById('trafficValue');
+  trafficVolume.addEventListener('input', () => {
+    trafficValue.textContent = trafficVolume.value;
+    trafficVolume.setAttribute('aria-valuenow', trafficVolume.value);
+  });
+
+  // Mock historical factors weight for risk calculation (simulated AI)
+  const riskWeights = {
+    timeOfDay: {
+      morning: 0.6,
+      afternoon: 0.4,
+      evening: 0.8,
+      night: 1.0,
+    },
+    weather: {
+      clear: 0.2,
+      rain: 0.7,
+      fog: 0.85,
+      snow: 0.9,
+    },
+    roadCondition: {
+      good: 0.3,
+      moderate: 0.6,
+      poor: 1.0,
+    }
+  };
+
+  // Function to predict risk score based on input
+  function predictRisk(data) {
+    // Normalize traffic volume to 0-1
+    const trafficNorm = data.trafficVolume / 100;
+    // Calculate base risk weight sum
+    const baseRisk = riskWeights.timeOfDay[data.timeOfDay] + riskWeights.weather[data.weather] + riskWeights.roadCondition[data.roadCondition];
+    // Combine with traffic volume weighted risk (traffic volume weighted more)
+    let rawScore = (baseRisk * 0.6) + (trafficNorm * 1.5);
+    // Clamp score to 0 - 3 approx
+    rawScore = Math.min(Math.max(rawScore, 0), 3);
+    return rawScore;
+  }
+
+  // Categorize risk level for display
+  function categorizeRisk(score) {
+    if (score < 1.2) return 'Low';
+    else if (score < 2.0) return 'Medium';
+    else return 'High';
+  }
+
+  // Simulated risk map generation - 5x5 grid with random variation around base risk
+  function generateRiskMap(baseRiskScore) {
+    const mapSize = 25; // 5x5
+    const riskMap = [];
+    for (let i = 0; i < mapSize; i++) {
+      // Random variation +/- 0.5
+      let variation = (Math.random() - 0.5);
+      let localScore = baseRiskScore + variation;
+      localScore = Math.min(Math.max(localScore, 0), 3);
+      riskMap.push(localScore);
+    }
+    return riskMap;
+  }
+
+  // Display risk map cells with appropriate colors
+  function displayRiskMap(riskScores) {
+    const riskMapContainer = document.getElementById('riskMap');
+    riskMapContainer.innerHTML = '';
+    riskScores.forEach(score => {
+      const cell = document.createElement('div');
+      cell.classList.add('risk-cell');
+      const category = categorizeRisk(score);
+      if (category === 'Low') cell.classList.add('risk-low');
+      else if (category === 'Medium') cell.classList.add('risk-medium');
+      else cell.classList.add('risk-high');
+      cell.title = `${category} Risk (${score.toFixed(2)})`;
+      riskMapContainer.appendChild(cell);
+    });
+  }
+
+  // Handle form submission
+  const form = document.getElementById('predictionForm');
+  const resultOutput = document.getElementById('resultOutput');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const data = {
+      timeOfDay: formData.get('timeOfDay'),
+      weather: formData.get('weather'),
+      trafficVolume: Number(formData.get('trafficVolume')),
+      roadCondition: formData.get('roadCondition')
+    };
+
+    // Get prediction score
+    const riskScore = predictRisk(data);
+    const riskCategory = categorizeRisk(riskScore);
+
+    // Generate risk map
+    const riskMapScores = generateRiskMap(riskScore);
+    displayRiskMap(riskMapScores);
+
+    // Show results with explanation
+    const explanation = `
+      <p><strong>Predicted Risk Level:</strong> ${riskCategory}</p>
+      <p>Risk Score: ${riskScore.toFixed(2)} (Scale 0-3)</p>
+      <p><strong>Factors considered:</strong></p>
+      <ul>
+        <li>Time of Day: ${data.timeOfDay.charAt(0).toUpperCase() + data.timeOfDay.slice(1)}</li>
+        <li>Weather: ${data.weather.charAt(0).toUpperCase() + data.weather.slice(1)}</li>
+        <li>Traffic Volume: ${data.trafficVolume}%</li>
+        <li>Road Condition: ${data.roadCondition.charAt(0).toUpperCase() + data.roadCondition.slice(1)}</li>
+      </ul>
+      <p>This simulation uses weighted factors to estimate accident risk. Higher risk areas are shown in red on the map below.</p>
+    `;
+    resultOutput.innerHTML = explanation;
+    resultOutput.focus();
+  });
+
+  // Initialize risk map with default inputs
+  window.addEventListener('load', () => {
+    const defaultData = {
+      timeOfDay: trafficVolume.value ? 'morning' : 'morning',
+      weather: 'clear',
+      trafficVolume: 50,
+      roadCondition: 'good'
+    };
+    const initScore = predictRisk(defaultData);
+    const initMap = generateRiskMap(initScore);
+    displayRiskMap(initMap);
+  });
+</script>
+</body>
+</html>
+
